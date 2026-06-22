@@ -19,12 +19,10 @@ jobs:
         unzip -o *.zip -d .
         rm *.zip
 
-    # Yeh naya step check karega ke files folder ke andar to nahi hain
     - name: Move files if nested inside a folder
       run: |
         if [ ! -f "settings.gradle" ] && [ ! -f "settings.gradle.kts" ]; then
           echo "Files are nested inside a folder. Finding root directory..."
-          # Kisi bhi subfolder se settings.gradle ko dhoond kar baahar nikalna
           SUBFOLDER=$(find . -maxdepth 2 -name "settings.gradle" -o -name "settings.gradle.kts" | head -n 1 | cut -d'/' -f2)
           if [ ! -z "$SUBFOLDER" ] && [ "$SUBFOLDER" != "." ]; then
             echo "Moving files from folder: $SUBFOLDER"
@@ -42,15 +40,18 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Ensure Gradle Wrapper exists
+    # Hum yahan Gradle 8.7 force kar rahe hain taake compatibility ka masla na aaye
+    - name: Setup Stable Gradle Version
       run: |
         if [ ! -f "gradlew" ]; then
-          gradle wrapper
+          echo "Generating Gradle 8.7 wrapper..."
+          gradle wrapper --gradle-version 8.7
+        else
+          chmod +x gradlew
         fi
-        chmod +x gradlew
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleDebug --no-daemon
 
     - name: Upload ShortsAI APK
       uses: actions/upload-artifact@v4
