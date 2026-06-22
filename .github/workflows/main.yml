@@ -40,24 +40,21 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    # Yeh step project ki saari gradle files me saari missing repositories sahi tarike se inject karega
-    - name: Force Inject All Required Repositories
+    # Naye Android structure ke mutabiq repositories inject karne ka sahi tarika
+    - name: Force Inject Repositories Legally
       run: |
-        cat << 'EOF' > inject.gradle
-        allprojects {
-            repositories {
-                google()
-                mavenCentral()
-                maven { url 'https://jitpack.io' }
-                maven { url 'https://huawei.com' }
-            }
-        }
-        EOF
-        if [ -f "build.gradle" ]; then
-          cat inject.gradle >> build.gradle
-        fi
         if [ -f "settings.gradle" ]; then
-          sed -i '/dependencyResolutionManagement {/a \        repositories {\n            google()\n            mavenCentral()\n            maven { url "https://jitpack.io" }\n        }' settings.gradle || true
+          cat << 'EOF' >> settings.gradle
+          
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.PRESERVE_EXISTING)
+              repositories {
+                  google()
+                  mavenCentral()
+                  maven { url 'https://jitpack.io' }
+              }
+          }
+        EOF
         fi
 
     - name: Setup Gradle
@@ -75,4 +72,3 @@ jobs:
         path: |
           app/build/outputs/apk/debug/app-debug.apk
           **/build/outputs/apk/debug/*.apk
-          
