@@ -40,14 +40,24 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    # FFmpeg aur JitPack libraries ko allow karne ke liye settings inject karna
-    - name: Inject JitPack Repository
+    # Yeh step project ki saari gradle files me saari missing repositories sahi tarike se inject karega
+    - name: Force Inject All Required Repositories
       run: |
-        if [ -f "settings.gradle" ]; then
-          sed -i '/repositories {/a \        maven { url "https://jitpack.io" }' settings.gradle
-        fi
+        cat << 'EOF' > inject.gradle
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
+                maven { url 'https://jitpack.io' }
+                maven { url 'https://huawei.com' }
+            }
+        }
+        EOF
         if [ -f "build.gradle" ]; then
-          sed -i '/repositories {/a \        maven { url "https://jitpack.io" }' build.gradle
+          cat inject.gradle >> build.gradle
+        fi
+        if [ -f "settings.gradle" ]; then
+          sed -i '/dependencyResolutionManagement {/a \        repositories {\n            google()\n            mavenCentral()\n            maven { url "https://jitpack.io" }\n        }' settings.gradle || true
         fi
 
     - name: Setup Gradle
