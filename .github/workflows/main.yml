@@ -40,18 +40,14 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    # Hum yahan Gradle 8.7 force kar rahe hain taake compatibility ka masla na aaye
-    - name: Setup Stable Gradle Version
-      run: |
-        if [ ! -f "gradlew" ]; then
-          echo "Generating Gradle 8.7 wrapper..."
-          gradle wrapper --gradle-version 8.7
-        else
-          chmod +x gradlew
-        fi
+    # Yeh step system ke naye gradle ko bypass kar ke specific stable gradle chalayega
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: 8.7
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --no-daemon
+      run: gradle assembleDebug --no-daemon
 
     - name: Upload ShortsAI APK
       uses: actions/upload-artifact@v4
